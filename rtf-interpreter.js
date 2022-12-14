@@ -29,7 +29,15 @@ const codeToCP = {
   204: 'CP1251', // russian
   222: 'CP874', // thai
   238: 'CP238', // eastern european
-  254: 'CP437' // PC-437
+  254: 'CP437', // PC-437
+  1200: "utf16le",
+  1201: "utf16be",
+  12000: "utf32le",
+  12001: "utf32be",
+  16969: "utf64le",
+  20127: "ascii",
+  65000: "utf7",
+  65001: "utf8",
 }
 
 class RTFInterpreter extends Writable {
@@ -67,8 +75,15 @@ class RTFInterpreter extends Writable {
   }
   flushHexStore () {
     if (this.hexStore.length > 0) {
-      let hexstr = this.hexStore.map(cmd => cmd.value).join('')
-      let translate = this.group.get('charset') === 'SYMBOL' ? String.fromCodePoint('0x'+hexstr) : iconv.decode(Buffer.from(hexstr, 'hex'), this.group.get('charset'))
+      let translate = '';
+      let charset = this.group.get('charset');
+      if (charset === 'SYMBOL') {
+        translate = String.fromCodePoint.apply(null, this.hexStore.map(cmd => parseInt(cmd.value, 16)))
+      }
+      else {
+        let hexstr = this.hexStore.map(cmd => cmd.value).join('')
+        translate = iconv.decode(Buffer.from(hexstr, 'hex'), charset)
+      }
       this.group.addContent(new RTFSpan({value: translate}))
       this.hexStore.splice(0)
     }
@@ -89,6 +104,8 @@ class RTFInterpreter extends Writable {
   }
   cmd$groupEnd () {
     this.flushHexStore()
+    if (!this.group) return;
+
     const endingGroup = this.group
     this.group = this.groupStack.pop()
     const doc = this.group || this.doc
@@ -112,6 +129,8 @@ class RTFInterpreter extends Writable {
   }
   cmd$controlWord (cmd) {
     this.flushHexStore()
+    if (!this.group) return;
+
     if (!this.group.type) this.group.type = cmd.value
     const method = 'ctrl$' + cmd.value.replace(/-(.)/g, (_, char) => char.toUpperCase())
     if (this[method]) {
@@ -273,7 +292,12 @@ class RTFInterpreter extends Writable {
   }
   ctrl$ansicpg (codepage) {
     if (availableCP.indexOf(codepage) === -1) {
-      this.emit('error', new Error('Codepage ' + codepage + ' is not available.'))
+      if (codeToCP[codepage]) {
+        this.group.charset = codeToCP[codepage]
+      }
+      else {
+        this.emit('error', new Error('Codepage ' + codepage + ' is not available.'))
+      }
     } else {
       this.group.charset = 'CP' + codepage
     }
