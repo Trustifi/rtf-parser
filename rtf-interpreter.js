@@ -10,7 +10,7 @@ const iconv = require('iconv-lite')
 
 const availableCP = [
   437, 737, 775, 850, 852, 853, 855, 857, 858, 860, 861, 863, 865, 866,
-  869, 932, 936, 949, 950, 1125, 1250, 1251, 1252, 1253, 1254, 1257 ]
+  869, 932, 936, 949, 950, 1125, 1250, 1251, 1252, 1253, 1254, 1256, 1257 ]
 const codeToCP = {
   0: 'ASCII',
   2: 'SYMBOL',
@@ -68,10 +68,8 @@ class RTFInterpreter extends Writable {
   flushHexStore () {
     if (this.hexStore.length > 0) {
       let hexstr = this.hexStore.map(cmd => cmd.value).join('')
-      this.group.addContent(new RTFSpan({
-        value: iconv.decode(
-          Buffer.from(hexstr, 'hex'), this.group.get('charset'))
-      }))
+      let translate = this.group.get('charset') === 'SYMBOL' ? String.fromCodePoint('0x'+hexstr) : iconv.decode(Buffer.from(hexstr, 'hex'), this.group.get('charset'))
+      this.group.addContent(new RTFSpan({value: translate}))
       this.hexStore.splice(0)
     }
   }
@@ -143,6 +141,36 @@ class RTFInterpreter extends Writable {
     this.group.addContent(new RTFSpan({ value: '\t' }))
   }
 
+  // en dash
+  ctrl$endash () {
+    this.group.addContent(new RTFSpan({ value: '\u2013' }))
+  }
+
+  // em dash
+  ctrl$emdash () {
+    this.group.addContent(new RTFSpan({ value: '\u2014' }))
+  }
+
+  // left single quote
+  ctrl$lquote () {
+    this.group.addContent(new RTFSpan({ value: '\u2018' }))
+  }
+
+  // right single quote
+  ctrl$rquote () {
+    this.group.addContent(new RTFSpan({ value: '\u2019' }))
+  }
+
+  // left double quote
+  ctrl$ldblquote () {
+    this.group.addContent(new RTFSpan({ value: '\u201c' }))
+  }
+
+  // right double quote
+  ctrl$rdblquote () {
+    this.group.addContent(new RTFSpan({ value: '\u201d' }))
+  }
+
   // alignment
   ctrl$qc () {
     this.group.style.align = 'center'
@@ -185,11 +213,16 @@ class RTFInterpreter extends Writable {
     this.group.style.italic = set !== 0
   }
   ctrl$u (num) {
-    var charBuf = Buffer.alloc ? Buffer.alloc(2) : new Buffer(2)
-    // RTF, for reasons, represents unicode characters as signed integers
-    // thus managing to match literally no one.
-    charBuf.writeInt16LE(num, 0)
-    this.group.addContent(new RTFSpan({value: iconv.decode(charBuf, 'ucs2')}))
+    try {
+      var charBuf = Buffer.alloc ? Buffer.alloc(2) : new Buffer(2)
+      // RTF, for reasons, represents unicode characters as signed integers
+      // thus managing to match literally no one.
+      charBuf.writeInt16LE(num, 0)
+      this.group.addContent(new RTFSpan({value: iconv.decode(charBuf, 'ucs2')}))
+    } catch (e) {
+      // Yet UCS4 signed characters can exist too
+      this.group.addContent(new RTFSpan({value: String.fromCodePoint([num])}))
+    }
   }
   ctrl$super () {
     this.group.style.valign = 'super'
