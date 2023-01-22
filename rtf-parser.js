@@ -2,7 +2,7 @@
 const Transform = require('readable-stream').Transform
 
 class RTFParser extends Transform {
-  constructor () {
+  constructor (rawHtml) {
     super({objectMode: true})
     this.text = ''
     this.controlWord = ''
@@ -12,6 +12,7 @@ class RTFParser extends Transform {
     this.char = 0
     this.row = 1
     this.col = 1
+    this.rawHtml = rawHtml
   }
   _transform (buf, encoding, done) {
     const text = buf.toString('ascii')
@@ -63,7 +64,9 @@ class RTFParser extends Transform {
     } else if (char === '_') {
       this.text += '\u2011' // non-breaking hyphen
     } else if (char === '*') {
+      if (!this.rawHtml) {
       this.emitIgnorable()
+      }
       this.parserState = this.parseText
     } else if (char === "'") {
       this.parserState = this.parseHexChar

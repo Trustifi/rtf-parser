@@ -7,15 +7,15 @@ module.exports = parse
 parse.string = parseString
 parse.stream = parseStream
 
-function parseString (string, cb) {
-  parse(cb).end(string)
+function parseString (string, rawHtml, cb) {
+  parse(rawHtml, cb).end(string)
 }
 
-function parseStream (stream, cb) {
-  stream.pipe(parse(cb))
+function parseStream (stream, rawHtml, cb) {
+  stream.pipe(parse(rawHtml, cb))
 }
 
-function parse (cb) {
+function parse (rawHtml, cb) {
   let errored = false
   const errorHandler = err => {
     if (errored) return
@@ -25,7 +25,7 @@ function parse (cb) {
     cb(err)
   }
   const document = new RTFDocument()
-  const parser = new RTFParser()
+  const parser = new RTFParser(rawHtml)
   parser.once('error', errorHandler)
   const interpreter = new RTFInterpreter(document)
   interpreter.on('error', errorHandler)

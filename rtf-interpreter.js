@@ -117,7 +117,7 @@ class RTFInterpreter extends Writable {
       for (const item of endingGroup.content) {
         doc.addContent(item)
       }
-      process.emit('debug', 'GROUP END', endingGroup.type, endingGroup.get('ignorable'))
+      //process.emit('debug', 'GROUP END', endingGroup.type, endingGroup.get('ignorable'))
     }
   }
   cmd$text (cmd) {
@@ -136,7 +136,7 @@ class RTFInterpreter extends Writable {
     if (this[method]) {
       this[method](cmd.param)
     } else {
-      if (!this.group.get('ignorable')) process.emit('debug', method, cmd.param)
+      //if (!this.group.get('ignorable')) process.emit('debug', method, cmd.param)
     }
   }
   cmd$hexchar (cmd) {
