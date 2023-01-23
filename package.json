@@ -1,10 +1,14 @@
 {
   "name": "rtf-parser",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "This is a general RTF parser.  It takes a text stream and produces a document object representing the parsed document.  In and of itself, this isn't super useful but it's the building block for other tools to convert RTF into other formats.",
   "main": "index.js",
+  "engines": {
+    "node": "18.12.1",
+    "npm": "8.19.2"
+  },
   "dependencies": {
-    "iconv-lite": "^0.4.15",
+    "iconv-lite": "^0.6.3",
     "readable-stream": "^2.2.2"
   },
   "devDependencies": {
@@ -15,6 +19,7 @@
     "standard-version": "*"
   },
   "scripts": {
+    "npm-install": "npm i",
     "test": "standard && tap test/",
     "prerelease": "npm t",
     "release": "standard-version -s",
