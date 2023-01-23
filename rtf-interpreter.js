@@ -113,8 +113,11 @@ class RTFInterpreter extends Writable {
       doc.fonts = endingGroup.table
     } else if (endingGroup instanceof ColorTable) {
       doc.colors = endingGroup.table
-    } else if (endingGroup !== this.doc && !endingGroup.get('ignorable')) {
+    } else if (endingGroup !== this.doc) {
+      const ignorable = endingGroup.get('ignorable');
       for (const item of endingGroup.content) {
+        item.ignorable = item.ignorable || ignorable;
+        item.type = item.type || doc.type;
         doc.addContent(item)
       }
       //process.emit('debug', 'GROUP END', endingGroup.type, endingGroup.get('ignorable'))
