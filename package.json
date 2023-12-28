@@ -1,5 +1,5 @@
 {
-  "name": "rtf-parser",
+  "name": "trustifi-rtf-parser",
   "version": "1.3.6",
   "description": "This is a general RTF parser.  It takes a text stream and produces a document object representing the parsed document.  In and of itself, this isn't super useful but it's the building block for other tools to convert RTF into other formats.",
   "main": "index.js",
@@ -21,6 +21,15 @@
   ],
   "author": "Rebecca Turner <me@re-becca.org> (http://re-becca.org/)",
   "license": "ISC",
+  "files": [
+    "index.js",
+    "rtf-interpreter.js",
+    "rtf-parser.js",
+    "rtf-group.js",
+    "rtf-document.js",
+    "rtf-paragraph.js",
+    "rtf-span.js"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/iarna/rtf-parser.git"
