@@ -146,7 +146,8 @@ class RTFInterpreter extends Writable {
     this.hexStore.push(cmd)
   }
   cmd$error (cmd) {
-    this.emit('error', new Error('Error: ' + cmd.value + (cmd.row && cmd.col ? ' at line ' + cmd.row + ':' + cmd.col : '') + '.'))
+    //this.emit('error', new Error('Error: ' + cmd.value + (cmd.row && cmd.col ? ' at line ' + cmd.row + ':' + cmd.col : '') + '.'))
+    this.group.addContent(new RTFSpan({ value: '<rtf-intepreter-error>' + cmd.value + (cmd.row && cmd.col ? ' at line ' + cmd.row + ':' + cmd.col : '') + '</rtf-intepreter-error>' }))
   }
 
   ctrl$rtf () {
